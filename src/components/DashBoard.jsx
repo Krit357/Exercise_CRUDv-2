@@ -4,8 +4,8 @@ import "./Dashboard.css";
 import {
   addActivities,
   getActivities,
-  updateActivity,
   deleteActivity,
+  updateActivity,
 } from "../service/activityService";
 
 const DashBoard = () => {
@@ -15,6 +15,8 @@ const DashBoard = () => {
   const [startActivity, setStartActivity] = useState({});
   const [successActivity, setSuccessActivity] = useState(0);
   const [cards, setCards] = useState([]);
+  const [editMode, setEditMode] = useState(false);
+  const [editActivity, setEditActivity] = useState(null);
 
   useEffect(() => {
     getActivities().then(setCards);
@@ -93,14 +95,67 @@ const DashBoard = () => {
         completed: false,
       };
 
-      console.log("Sending to backend:", activityData);
-
       const addedActivity = await addActivities(activityData);
       setCards([...cards, addedActivity]);
 
       setShowForm(false);
       setNewActivity("");
       setNewTime("");
+    }
+  };
+
+  const handleDeleteActivity = async (_id) => {
+    try {
+      await deleteActivity(_id);
+      setCards((prevCards) => prevCards.filter((card) => card._id !== _id));
+    } catch (err) {
+      console.error("Error cannot delete activity", err);
+    }
+  };
+
+  const handleEditActivity = (activity) => {
+    setEditMode(true);
+    setEditActivity({ ...activity });
+  };
+
+  const handleUpdateActivity = async () => {
+    if (!editActivity || !editActivity._id) {
+      console.error("Error: No activity selected for update");
+      return;
+    }
+
+    let updatedImage = `/default.png`; // Default image
+    switch (editActivity.activity) {
+      case "Running":
+        updatedImage = "/running.png";
+        break;
+      case "Swimming":
+        updatedImage = "/swimming.png";
+        break;
+      case "Hiking":
+        updatedImage = "/hiking.png";
+        break;
+      case "Biking":
+        updatedImage = "/biking.png";
+        break;
+    }
+    try {
+      const updatedActivity = await updateActivity(editActivity._id, {
+        activity: editActivity.activity,
+        time: editActivity.time,
+        image: updatedImage, // ✅ Ensure the image is included
+      });
+
+      setCards((prevCards) =>
+        prevCards.map((card) =>
+          card._id === updatedActivity._id ? updatedActivity : card
+        )
+      );
+
+      setEditMode(false);
+      setEditActivity(null);
+    } catch (err) {
+      console.error("Error updating activity", err);
     }
   };
 
@@ -112,6 +167,48 @@ const DashBoard = () => {
         <span>Success activity : {successActivity}</span>
       </p>
       <button onClick={() => setShowForm(true)}>Add Activity</button>
+      {editMode && editActivity ? (
+        <div>
+          <h2>Edit Activity</h2>
+          <label>Activity Name:</label>
+          <select
+            value={editActivity.activity}
+            onChange={(e) =>
+              setEditActivity({ ...editActivity, activity: e.target.value })
+            }
+          >
+            <option value="Running">Running</option>
+            <option value="Swimming">Swimming</option>
+            <option value="Biking">Biking</option>
+            <option value="Hiking">Hiking</option>
+          </select>
+
+          <label>Time (minutes):</label>
+          <select
+            type="number"
+            value={editActivity.time}
+            onChange={(e) =>
+              setEditActivity({
+                ...editActivity,
+                time: parseInt(e.target.value),
+              })
+            }
+          >
+            <option value="0">0</option>
+            <option value="15">15</option>
+            <option value="30">30</option>
+            <option value="45">45</option>
+            <option value="60">60</option>
+            <option value="75">75</option>
+            <option value="90">90</option>
+            <option value="105">105</option>
+            <option value="120">120</option>
+          </select>
+
+          <button onClick={handleUpdateActivity}>Update</button>
+          <button onClick={() => setEditMode(false)}>Cancel</button>
+        </div>
+      ) : null}
 
       <div className="activity-main">
         {cards.length === 0 ? (
@@ -125,12 +222,16 @@ const DashBoard = () => {
               <p>Date: {card.date}</p>
               <img
                 className="activity-img"
-                src={card.image}
+                src={card.image ? card.image : "/default.png"}
                 alt={card.activity}
               />
               <p>Time left: {formatTime(card.time)}</p>
               <button onClick={() => handleStartCountdown(card._id)}>
                 {startActivity[card._id] ? "stop" : "Start timer"}
+              </button>
+              <button onClick={() => handleEditActivity(card)}>Edit</button>
+              <button onClick={() => handleDeleteActivity(card._id)}>
+                Delete
               </button>
             </div>
           ))

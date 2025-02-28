@@ -44,24 +44,23 @@ app.get("/dashboard", async (req, res) => {
 });
 
 app.put("/dashboard/:id", async (req, res) => {
-  if (!req.params.id) {
-    return res.status(400).json({ error: "Activity ID is required" });
-  }
-
   try {
     const updatedActivity = await Activity.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      {
+        activity: req.body.activity,
+        time: req.body.time,
+        image: req.body.image, // ✅ Ensure the image is updated
+      },
       { new: true }
     );
 
     if (!updatedActivity) {
-      return res.status(404).json({ error: "Activity not found" });
+      return res.status(404).json({ message: "Activity not found" });
     }
-
     res.json(updatedActivity);
-  } catch (error) {
-    res.status(500).json({ error: "Server error", details: error });
+  } catch (err) {
+    res.status(500).json("Failed to update activity", err);
   }
 });
 
