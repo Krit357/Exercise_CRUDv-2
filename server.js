@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: "http://localhost:5174",
+    origin: "http://localhost:5173",
     credentials: true,
   })
 );
@@ -31,18 +31,18 @@ app.get("/", async (req, res) => {
   res.send("welcome to the internet");
 });
 
-app.post("/activities", async (req, res) => {
+app.post("/dashboard", async (req, res) => {
   const newActivity = new Activity(req.body);
   await newActivity.save();
   res.status(201).json(newActivity);
 });
 
-app.get("/activities", async (req, res) => {
+app.get("/dashboard", async (req, res) => {
   const activities = await Activity.find();
   res.json(activities);
 });
 
-app.put("/activities/:id", async (req, res) => {
+app.put("/dashboard/:id", async (req, res) => {
   if (!req.params.id) {
     return res.status(400).json({ error: "Activity ID is required" });
   }
@@ -64,7 +64,7 @@ app.put("/activities/:id", async (req, res) => {
   }
 });
 
-app.delete("/activities/:id", async (req, res) => {
+app.delete("/dashboard/:id", async (req, res) => {
   await Activity.findByIdAndDelete(req.params.id);
   res.json({ message: "Activity deleted" });
 });
