@@ -5,6 +5,7 @@ import {
   addActivities,
   getActivities,
   updateActivity,
+  deleteActivity,
 } from "../service/activityService";
 
 const DashBoard = () => {
@@ -23,12 +24,13 @@ const DashBoard = () => {
     const interval = setInterval(() => {
       setCards((prevCards) =>
         prevCards.map((card) =>
-          startActivity[card.id] && card.time > 0
-            ? { ...card, time: card.time - 1 }
+          startActivity[card._id] && card.time > 0
+            ? { ...card, time: card.time - 1 } // ✅ Only countdown for running cards
             : card
         )
       );
     }, 1000);
+
     return () => clearInterval(interval);
   }, [startActivity]);
 
@@ -38,27 +40,28 @@ const DashBoard = () => {
     return `${min}:${sec < 10 ? "0" : ""}${sec}`;
   };
 
-  const handleStartCountdown = async (id) => {
+  const handleStartCountdown = async (_id) => {
     setStartActivity((prevCards) => {
-      const isStopping = prevCards[id]; // Check if the activity is stopping
-      const activity = cards.find((card) => card.id === id); // Find activity
+      const isStopping = prevCards[_id]; // ✅ Check if stopping
+      const activity = cards.find((card) => card._id === _id); // ✅ Find activity
 
-      // ✅ If stopping the activity & time is 0, increment success count & delete it
+      // ✅ If stopping and time is 0, increment success count & delete from DB
       if (isStopping && activity?.time === 0) {
         setSuccessActivity((prev) => prev + 1);
-        setCards((prevCards) => prevCards.filter((card) => card.id !== id)); // ✅ Delete activity
-        return prevCards; // ✅ Ensure it doesn't update startActivity if it's deleted
+        deleteActivity(_id); // ✅ Delete from MongoDB
+        setCards((prevCards) => prevCards.filter((card) => card._id !== _id)); // ✅ Remove from frontend state
+        return prevCards;
       } else if (isStopping) {
-        setCards((prevCards) => prevCards.filter((card) => card.id !== id)); // ✅ Delete activity
+        deleteActivity(_id); // ✅ Delete from MongoDB
+        setCards((prevCards) => prevCards.filter((card) => card._id !== _id)); // ✅ Remove from frontend state
         return prevCards;
       }
 
       return {
         ...prevCards,
-        [id]: !prevCards[id], // Toggle start/stop
+        [_id]: !prevCards[_id], // ✅ Toggle only the selected activity
       };
     });
-    await updateActivity(id, { complete: true });
   };
 
   const handleAddActivity = async () => {
@@ -67,7 +70,7 @@ const DashBoard = () => {
 
       switch (newActivity) {
         case "Running":
-          activityImage = "/running.png";
+          activityImage = "/running.png"; // ✅ Correct path
           break;
         case "Swimming":
           activityImage = "/swimming.png";
@@ -79,16 +82,20 @@ const DashBoard = () => {
           activityImage = "/biking.png";
           break;
         default:
-          activityImage = "";
+          activityImage = "/default.png"; // ✅ Default image
       }
+
       const activityData = {
         activity: newActivity,
+        image: activityImage, // ✅ Store correct image path
         time: parseInt(newTime) * 60,
         date: new Date().toISOString().split("T")[0],
         completed: false,
       };
 
-      const addedActivity = await addActivities(activityData); // ✅ Save to backend
+      console.log("Sending to backend:", activityData);
+
+      const addedActivity = await addActivities(activityData);
       setCards([...cards, addedActivity]);
 
       setShowForm(false);
@@ -116,10 +123,14 @@ const DashBoard = () => {
                 {i + 1}.{card.activity}
               </h2>
               <p>Date: {card.date}</p>
-              <img className="activity-img" src={card.image} alt={card.image} />
+              <img
+                className="activity-img"
+                src={card.image}
+                alt={card.activity}
+              />
               <p>Time left: {formatTime(card.time)}</p>
-              <button onClick={() => handleStartCountdown(card.id)}>
-                {startActivity[card.id] ? "stop" : "Start timer"}
+              <button onClick={() => handleStartCountdown(card._id)}>
+                {startActivity[card._id] ? "stop" : "Start timer"}
               </button>
             </div>
           ))

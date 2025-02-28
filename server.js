@@ -20,6 +20,7 @@ mongoose
 
 const activitySchema = new mongoose.Schema({
   activity: String,
+  image: String,
   time: Number,
   date: String,
   completed: Boolean,
