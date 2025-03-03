@@ -1,11 +1,15 @@
-import { Outlet, Navigate, useLocation } from "react-router";
+import { Outlet, Navigate, useLocation, useNavigate } from "react-router";
 
 const AuthLayout = () => {
   const token = localStorage.getItem("token");
   const location = useLocation();
+  const navigate = useNavigate();
 
-  console.log("Token:", token, "Path:", location.pathname);
-  console.log("Token in LocalStorage:", token);
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/");
+  };
+
   // ✅ Allow access to login and register pages
   if (
     !token &&
@@ -15,7 +19,12 @@ const AuthLayout = () => {
     return <Navigate to="/login" replace />;
   }
 
-  return <Outlet />;
+  return (
+    <div>
+      {token && <button onClick={handleLogout}>Logout</button>}
+      <Outlet />
+    </div>
+  );
 };
 
 export default AuthLayout;

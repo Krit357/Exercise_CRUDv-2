@@ -7,6 +7,7 @@ import {
   deleteActivity,
   updateActivity,
 } from "../service/activityService";
+import { useNavigate } from "react-router";
 
 const DashBoard = () => {
   const [newActivity, setNewActivity] = useState("");
@@ -17,6 +18,13 @@ const DashBoard = () => {
   const [cards, setCards] = useState([]);
   const [editMode, setEditMode] = useState(false);
   const [editActivity, setEditActivity] = useState(null);
+
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/");
+  };
 
   useEffect(() => {
     getActivities().then(setCards);
@@ -162,6 +170,7 @@ const DashBoard = () => {
   return (
     <div>
       <h1>DashBoard</h1>
+      <button onClick={handleLogout}>Logout</button>
       <p>
         Activity : {cards.length}{" "}
         <span>Success activity : {successActivity}</span>
