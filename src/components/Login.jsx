@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { loginUser } from "../service/authService";
 
 const Login = () => {
   const navigate = useNavigate();
+  const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
@@ -11,18 +13,21 @@ const Login = () => {
     setPassword("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (username === "test" && password === "1234") {
-      navigate("/dashBoard");
-      resetInput();
+    const res = await loginUser({ email, password });
+
+    if (res.token) {
+      navigate("/dashboard");
     } else {
+      alert("Invalid credentials");
       resetInput();
     }
   };
 
   return (
     <div>
+      <h2>Login</h2>
       <form onSubmit={handleSubmit}>
         <label htmlFor="username">Username</label>
         <input

@@ -11,12 +11,13 @@ const router = express.Router();
 router.post("/register", async (req, res) => {
   try {
     const { username, email, password } = req.body;
-
+    console.log("income", req.body);
     // Check if user exists
     const existingUser = await User.findOne({ email });
-    if (existingUser)
+    if (existingUser) {
+      console.log("User already exists!");
       return res.status(400).json({ message: "User already exists" });
-
+    }
     // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -27,7 +28,8 @@ router.post("/register", async (req, res) => {
 
     res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    console.error("Registration error:", err);
+    res.status(500).json({ message: "Server error", err });
   }
 });
 
@@ -51,7 +53,7 @@ router.post("/login", async (req, res) => {
 
     res.status(200).json({ token, userId: user._id, username: user.username });
   } catch (err) {
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Server error", err });
   }
 });
 

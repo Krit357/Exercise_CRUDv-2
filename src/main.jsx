@@ -24,10 +24,8 @@ ReactDOM.createRoot(root).render(
         <Route path="register" element={<Register />} />
       </Route>
 
-      <Route path="dashboard" element={<DashBoard />}>
-        <Route index element={<Home />} />
-        <Route path="setting" element={<Setting />} />
-      </Route>
+      <Route path="/dashboard" element={<DashBoard />} />
+      <Route path="setting" element={<Setting />} />
 
       <Route path="concerts">
         <Route index element={<ConcertHome />} />

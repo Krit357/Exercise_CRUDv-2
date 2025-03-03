@@ -14,10 +14,15 @@ app.use(
   })
 );
 
+console.log("MongoDB URI:", process.env.MONGO_URI);
+console.log("JWT Secret:", process.env.JWT_SECRET);
+
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected ✅"))
   .catch((err) => console.error("MongoDB connection error:", err));
+
+app.use("/auth", authRoutes);
 
 const activitySchema = new mongoose.Schema({
   activity: String,
