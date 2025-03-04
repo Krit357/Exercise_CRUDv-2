@@ -1,31 +1,44 @@
 const API_URL = "http://localhost:5000";
 
 export const getActivities = async () => {
+  const userId = localStorage.getItem("userId"); // ✅ Get logged-in userId
+  if (!userId) return [];
+
   try {
-    const res = await fetch(`${API_URL}/dashboard`);
-    if (!res.ok) throw new Error("Failed to fetch activities");
+    const res = await fetch(`http://localhost:5000/dashboard?userId=${userId}`);
     return await res.json();
   } catch (err) {
-    console.error("Error fetch activities", err);
+    console.error("Error fetching activities", err);
     return [];
+  }
+};
+
+export const getActivityById = async (id) => {
+  try {
+    const res = await fetch(`http://localhost:5000/dashboard/${id}`);
+    return await res.json();
+  } catch (err) {
+    console.error("Error fetching activity by ID:", err);
+    return null;
   }
 };
 
 export const addActivities = async (activityData) => {
+  const userId = localStorage.getItem("userId"); // ✅ Get userId
+  if (!userId) return null;
+
   try {
-    const res = await fetch(`${API_URL}/dashboard`, {
+    const res = await fetch("http://localhost:5000/dashboard", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(activityData),
+      body: JSON.stringify({ userId, ...activityData }), // ✅ Include userId
     });
-    if (!res.ok) throw new Error("Failed to create activities");
     return await res.json();
   } catch (err) {
-    console.error("Error fetch activities", err);
-    return [];
+    console.error("Error adding activity", err);
+    return null;
   }
 };
-
 export const updateActivity = async (_id, updateData) => {
   try {
     const res = await fetch(`${API_URL}/dashboard/${_id}`, {

@@ -76,6 +76,8 @@ const DashBoard = () => {
 
   const handleAddActivity = async () => {
     if (newActivity && newTime) {
+      const userId = localStorage.getItem("userId");
+      if (!userId) return alert("You must be logged in to add activities");
       let activityImage = "";
 
       switch (newActivity) {

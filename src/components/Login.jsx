@@ -14,10 +14,10 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Sending Data:", { email, password });
     const res = await loginUser({ email, password });
     if (res.token) {
       localStorage.setItem("token", res.token);
+      localStorage.setItem("userId", res.userId);
       navigate("/dashboard");
     } else {
       alert("Invalid credentials");

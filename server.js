@@ -25,6 +25,7 @@ mongoose
 app.use("/auth", authRoutes);
 
 const activitySchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   activity: String,
   image: String,
   time: Number,
@@ -39,20 +40,51 @@ app.get("/", async (req, res) => {
 });
 
 app.post("/dashboard", async (req, res) => {
-  const newActivity = new Activity(req.body);
-  await newActivity.save();
-  res.status(201).json(newActivity);
+  const { userId, activity, image, time, date } = req.body;
+
+  if (!userId) return res.status(400).json({ message: "Missing userId" });
+
+  try {
+    const newActivity = new Activity({
+      userId, // ✅ Save userId
+      activity,
+      image,
+      time,
+      date,
+      completed: false,
+    });
+
+    await newActivity.save();
+    res.status(201).json(newActivity);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to add activity", error: err });
+  }
 });
 
 app.get("/dashboard", async (req, res) => {
-  const activities = await Activity.find();
-  res.json(activities);
+  const { userId } = req.query; // ✅ Get userId from query
+
+  if (!userId) {
+    return res.status(400).json({ message: "Missing userId" });
+  }
+
+  try {
+    const activities = await Activity.find({ userId });
+    res.json(activities);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch activities", error: err });
+  }
 });
 
 app.put("/dashboard/:id", async (req, res) => {
+  const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: "Invalid activity ID" });
+  }
   try {
     const updatedActivity = await Activity.findByIdAndUpdate(
-      req.params.id,
+      id,
       {
         activity: req.body.activity,
         time: req.body.time,
@@ -71,7 +103,21 @@ app.put("/dashboard/:id", async (req, res) => {
 });
 
 app.delete("/dashboard/:id", async (req, res) => {
-  await Activity.findByIdAndDelete(req.params.id);
+  const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: "Invalid Activity ID" });
+  }
+
+  try {
+    const deletedActivity = await Activity.findByIdAndDelete(id);
+    if (!deletedActivity) {
+      return res.status(404).json({ message: "Activity not found" });
+    }
+    res.json({ message: "Activity deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to delete activity", error: err });
+  }
+
   res.json({ message: "Activity deleted" });
 });
 
