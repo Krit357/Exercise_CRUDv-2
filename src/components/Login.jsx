@@ -15,6 +15,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const res = await loginUser({ email, password });
+    console.log("this is token", res.token);
     if (res.token) {
       localStorage.setItem("token", res.token);
       localStorage.setItem("userId", res.userId);

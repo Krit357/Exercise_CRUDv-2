@@ -22,17 +22,12 @@ export const registerUser = async (userData) => {
 
 export const loginUser = async (loginData) => {
   try {
-    console.log("Sending Login Data:", loginData); // ✅ Debugging
-
     const res = await fetch(`${API_URL}/auth/login`, {
+      // ✅ Call correct API
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(loginData),
     });
-
-    console.log("Response Status:", res.status); // ✅ Log response status
 
     if (!res.ok) {
       const errorMessage = await res.json();
@@ -46,7 +41,6 @@ export const loginUser = async (loginData) => {
     return null;
   }
 };
-
 // **Check If User is Logged In**
 export const getUserToken = () => localStorage.getItem("token");
 
